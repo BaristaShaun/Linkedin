@@ -3,107 +3,925 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LinkedIn Agent - Text Mode</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<title>링크드인 프로필 생성기 | LinkedIn Profile Generator</title>
+<meta name="description" content="이력서 한 장으로 영문 링크드인 프로필 완성. AI가 전자책 꿀팁을 기반으로 5개 섹션을 생성해드려요.">
+<meta property="og:title" content="링크드인 프로필 생성기">
+<meta property="og:description" content="이력서 업로드 → AI가 영문 링크드인 프로필 즉시 생성">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  :root { --bg: #0a0a0f; --surface: #111118; --border: #2a2a3a; --accent: #4f8ef7; --text: #e8e8f0; --muted: #6b6b88; }
-  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; padding: 20px; }
-  .wrap { max-width: 800px; margin: 0 auto; }
-  h1 { text-align: center; margin-bottom: 30px; color: var(--accent); }
-  
-  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
-  input, textarea { 
-    width: 100%; background: #000; border: 1px solid var(--border); border-radius: 8px; 
-    padding: 12px; color: #fff; font-family: inherit; margin-bottom: 10px;
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F5F2EC;
+    --surface: #FDFCF9;
+    --border: #E0DAD0;
+    --text: #1A1714;
+    --muted: #7A746C;
+    --accent: #1A1714;
+    --amber: #C17B2F;
+    --amber-bg: #FDF3E3;
+    --green: #2D6A4F;
+    --green-bg: #EAF5EE;
+    --radius: 12px;
+    --radius-sm: 8px;
   }
-  textarea { height: 200px; resize: vertical; }
-  
-  button { 
-    width: 100%; padding: 15px; border-radius: 8px; border: none; 
-    background: var(--accent); color: white; font-weight: bold; cursor: pointer;
+
+  html { font-size: 16px; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
   }
-  button:disabled { background: #333; cursor: not-allowed; }
-  
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-top: 15px; padding: 15px; }
-  .card-title { font-family: 'DM Mono', monospace; color: var(--accent); font-size: 12px; margin-bottom: 10px; display: block; }
-  .content { white-space: pre-wrap; font-size: 14px; line-height: 1.6; }
-  .error { color: #f87171; background: rgba(248,113,113,0.1); padding: 10px; border-radius: 5px; margin-bottom: 10px; display: none; }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .logo {
+    font-family: 'Instrument Serif', serif;
+    font-size: 18px;
+    color: var(--text);
+    text-decoration: none;
+    letter-spacing: -0.3px;
+  }
+
+  .lang-toggle {
+    display: flex;
+    gap: 4px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px;
+  }
+
+  .lang-btn {
+    padding: 3px 12px;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    border: none;
+    border-radius: 16px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .lang-btn.active {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  /* ── HERO ── */
+  .hero {
+    text-align: center;
+    padding: 4rem 1.5rem 3rem;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .hero-eyebrow {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--amber);
+    background: var(--amber-bg);
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 1.25rem;
+  }
+
+  .hero h1 {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(28px, 5vw, 40px);
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+    color: var(--text);
+    margin-bottom: 1rem;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--amber);
+  }
+
+  .hero p {
+    font-size: 15px;
+    color: var(--muted);
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  /* ── MAIN CARD ── */
+  .main {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 0 1.5rem 5rem;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  /* ── UPLOAD ── */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 3rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 1rem;
+    background: var(--surface);
+  }
+
+  .upload-zone:hover, .upload-zone.dragover {
+    border-color: var(--amber);
+    background: var(--amber-bg);
+  }
+
+  .upload-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 22px;
+  }
+
+  .upload-zone h3 {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  .upload-zone p {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  #file-input { display: none; }
+
+  .file-pill {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    background: var(--green-bg);
+    border: 1px solid #B7DCC8;
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    margin-bottom: 1rem;
+    font-size: 14px;
+  }
+
+  .file-pill .file-icon { font-size: 18px; }
+  .file-pill .file-name { flex: 1; font-weight: 500; color: var(--green); }
+  .file-pill .remove-btn {
+    font-size: 12px;
+    color: var(--muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .file-pill .remove-btn:hover { background: #d4edda; }
+
+  .gen-btn {
+    width: 100%;
+    padding: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    background: var(--text);
+    color: #FDFCF9;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.15s;
+    letter-spacing: -0.1px;
+  }
+
+  .gen-btn:hover:not(:disabled) { background: #333; }
+  .gen-btn:disabled { opacity: 0.38; cursor: not-allowed; }
+
+  /* ── LOADING ── */
+  .loading {
+    display: none;
+    text-align: center;
+    padding: 3rem 2rem;
+  }
+
+  .loading-dots {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+
+  .loading-dots span {
+    width: 8px;
+    height: 8px;
+    background: var(--text);
+    border-radius: 50%;
+    animation: bounce 1.2s ease-in-out infinite;
+  }
+
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  .loading p { font-size: 14px; color: var(--muted); }
+
+  /* ── RESULTS ── */
+  .results { display: none; flex-direction: column; gap: 12px; margin-top: 1.5rem; }
+
+  .result-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    animation: fadeUp 0.3s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-section:nth-child(2) { animation-delay: 0.05s; }
+  .result-section:nth-child(3) { animation-delay: 0.1s; }
+  .result-section:nth-child(4) { animation-delay: 0.15s; }
+  .result-section:nth-child(5) { animation-delay: 0.2s; }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--muted);
+    flex: 1;
+  }
+
+  .tip-btn {
+    font-size: 11px;
+    background: var(--amber-bg);
+    color: var(--amber);
+    border: 1px solid #F0D5A8;
+    border-radius: 20px;
+    padding: 2px 10px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+
+  .tip-btn:hover { background: #FAEBD0; }
+
+  .copy-btn {
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 4px 10px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s;
+  }
+
+  .copy-btn:hover { background: var(--bg); color: var(--text); }
+  .copy-btn.copied { color: var(--green); border-color: #B7DCC8; background: var(--green-bg); }
+
+  .tip-box {
+    display: none;
+    background: var(--amber-bg);
+    border-bottom: 1px solid #F0D5A8;
+    padding: 10px 16px;
+    font-size: 13px;
+    color: #7A4A1A;
+    line-height: 1.6;
+  }
+
+  .tip-box.open { display: block; }
+
+  .section-body { padding: 16px; }
+
+  .vtabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+
+  .vtab {
+    font-size: 12px;
+    padding: 4px 12px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+
+  .vtab.active {
+    background: var(--text);
+    color: #FDFCF9;
+    border-color: var(--text);
+  }
+
+  .section-text {
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--text);
+  }
+
+  .section-text ul { padding-left: 20px; }
+  .section-text li { margin-bottom: 6px; }
+
+  .skills-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .skill-tag {
+    font-size: 13px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 12px;
+    color: var(--text);
+  }
+
+  .connection-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    line-height: 1.75;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+
+  /* ── CTA ── */
+  .cta-wrap {
+    display: none;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 2rem;
+  }
+
+  @media (max-width: 480px) { .cta-wrap { grid-template-columns: 1fr; } }
+
+  .cta-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+  }
+
+  .cta-card .cta-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .cta-card h3 {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    font-family: 'Instrument Serif', serif;
+    font-size: 17px;
+    letter-spacing: -0.2px;
+  }
+
+  .cta-card p {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 14px;
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  .cta-btn {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+
+  .cta-btn-primary {
+    background: var(--text);
+    color: #FDFCF9;
+    border: none;
+  }
+
+  .cta-btn-primary:hover { background: #333; }
+
+  .cta-btn-secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .cta-btn-secondary:hover { background: var(--bg); }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    background: var(--text);
+    color: #FDFCF9;
+    font-size: 13px;
+    padding: 8px 20px;
+    border-radius: 20px;
+    opacity: 0;
+    transition: all 0.2s;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 999;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 2rem;
+    font-size: 12px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    margin-top: 2rem;
+  }
+
+  footer a { color: var(--muted); }
 </style>
 </head>
 <body>
 
-<div class="wrap">
-  <h1>LinkedIn Builder (Text Only)</h1>
+<header>
+  <a class="logo" href="#">LinkedIn ×<em> AI</em></a>
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="btn-ko" onclick="setLang('ko')">한국어</button>
+    <button class="lang-btn" id="btn-en" onclick="setLang('en')">English</button>
+  </div>
+</header>
 
-  <div class="panel">
-    <input type="password" id="apiKey" placeholder="Gemini API Key 입력">
-    <textarea id="resumeText" placeholder="이력서 내용을 여기에 붙여넣으세요..."></textarea>
-    <div id="errorBox" class="error"></div>
-    <button id="genBtn" onclick="generate()">✨ 프로필 생성 (텍스트 모드)</button>
+<section class="hero">
+  <span class="hero-eyebrow" id="eyebrow">전자책 기반 AI 프로필 생성</span>
+  <h1 id="hero-h1">이력서 한 장으로<br><em>영문 링크드인</em> 프로필 완성</h1>
+  <p id="hero-p">이력서를 업로드하면 AI가 전자책 꿀팁을 기반으로<br>헤드라인 · About · 경력 등 5개 섹션을 영어로 생성해드려요</p>
+</section>
+
+<main class="main">
+
+  <!-- Upload -->
+  <div class="upload-zone" id="upload-zone"
+       onclick="document.getElementById('file-input').click()"
+       ondragover="onDragOver(event)"
+       ondragleave="onDragLeave(event)"
+       ondrop="onDrop(event)">
+    <div class="upload-icon">📄</div>
+    <h3 id="upload-title">이력서를 여기에 업로드하세요</h3>
+    <p id="upload-hint">PDF 또는 DOCX · 드래그 앤 드롭 가능 · 최대 5MB</p>
+  </div>
+  <input type="file" id="file-input" accept=".pdf,.docx" onchange="onFileSelect(event)">
+
+  <!-- File selected -->
+  <div class="file-pill" id="file-pill">
+    <span class="file-icon">📎</span>
+    <span class="file-name" id="file-name-text"></span>
+    <button class="remove-btn" onclick="removeFile()" id="remove-btn">✕ 제거</button>
   </div>
 
-  <div id="status" style="text-align: center; color: var(--muted); display: none;">AI가 분석 중입니다... 잠시만 기다려주세요.</div>
-  <div id="results"></div>
-</div>
+  <!-- Generate button -->
+  <button class="gen-btn" id="gen-btn" disabled onclick="generate()">
+    <span>✦</span>
+    <span id="gen-label">프로필 생성하기</span>
+  </button>
+
+  <!-- Loading -->
+  <div class="loading" id="loading">
+    <div class="loading-dots"><span></span><span></span><span></span></div>
+    <p id="loading-msg">이력서 분석 중...</p>
+  </div>
+
+  <!-- Results -->
+  <div class="results" id="results"></div>
+
+  <!-- CTA -->
+  <div class="cta-wrap" id="cta-wrap">
+    <div class="cta-card">
+      <span class="cta-icon">📖</span>
+      <h3 id="cta-book-h">전자책으로 더 깊이 배우기</h3>
+      <p id="cta-book-p">리크루터가 먼저 연락하게 만드는 링크드인 전략 전부 공개. 해외 대기업 3곳 인턴 + 스카웃 10곳 이상을 이끌어낸 실전 노하우</p>
+      <a class="cta-btn cta-btn-primary" href="https://kmong.com/gig/757734" target="_blank" id="cta-book-btn">📖 전자책 구매하기 (크몽)</a>
+    </div>
+    <div class="cta-card">
+      <span class="cta-icon">🗓️</span>
+      <h3 id="cta-call-h">1:1 코칭 예약하기</h3>
+      <p id="cta-call-p">저자와 직접 1:1로 내 링크드인 프로필을 함께 만들어드려요. 실시간으로 피드백 받고 완성까지</p>
+      <a class="cta-btn cta-btn-secondary" href="https://calendly.com/alsrlthd123/short-meeting" target="_blank" id="cta-call-btn">🗓️ Calendly로 예약하기</a>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <p>이력서는 AI 처리 후 저장되지 않습니다 · Powered by Claude AI · <a href="https://kmong.com/gig/757734" target="_blank">전자책 구매</a></p>
+</footer>
+
+<div class="toast" id="toast">복사됐어요!</div>
 
 <script>
+const EBOOK_URL = 'https://kmong.com/gig/757734';
+const CALENDLY_URL = 'https://calendly.com/alsrlthd123/short-meeting';
+
+const T = {
+  ko: {
+    eyebrow: '전자책 기반 AI 프로필 생성',
+    heroH1: '이력서 한 장으로<br><em>영문 링크드인</em> 프로필 완성',
+    heroP: '이력서를 업로드하면 AI가 전자책 꿀팁을 기반으로<br>헤드라인 · About · 경력 등 5개 섹션을 영어로 생성해드려요',
+    uploadTitle: '이력서를 여기에 업로드하세요',
+    uploadHint: 'PDF 또는 DOCX · 드래그 앤 드롭 가능 · 최대 5MB',
+    removeBtn: '✕ 제거',
+    genLabel: '프로필 생성하기',
+    loadingMsgs: ['이력서 분석 중...', 'AI가 프로필 작성 중...', '섹션별 최적화 중...', '거의 다 됐어요...'],
+    sectionNames: { headline: 'HEADLINE', about: 'ABOUT', experience: 'EXPERIENCE', skills: 'SKILLS', connection: 'CONNECTION NOTE' },
+    varA: '버전 A', varB: '버전 B',
+    tipLabel: '💡 꿀팁',
+    copyLabel: '복사',
+    copied: '복사됐어요!',
+    tips: {
+      headline: '빌 게이츠도 헤드라인은 딱 한 줄. "적게 써서 더 많이 전달"이 핵심이에요. 리크루터가 프로필을 열자마자 당신이 어떤 사람인지 즉시 파악할 수 있어야 해요. 검색 알고리즘에서 가장 큰 비중을 차지하는 섹션이기도 해요.',
+      about: 'About 섹션은 단순 경력 나열이 아닌 "나라는 상품의 엣지"를 전달하는 공간이에요. 구매 담당자라면 "아시아-유럽 브릿지"처럼 희소성을 활용하세요. 최대 2,600자까지 작성 가능해요.',
+      experience: '경력은 "무엇을 했다"가 아닌 "어떤 임팩트를 만들었다"로 써야 해요. 숫자와 성과를 반드시 포함하세요. 리크루터는 평균 7초 안에 프로필을 스캔해요.',
+      skills: 'Skills 섹션은 링크드인 검색 알고리즘에 직접 영향을 줘요. Google, Microsoft 같은 대기업 HR팀이 리크루터로 실제 검색하는 키워드를 포함시키세요.',
+      connection: '커넥션 노트는 300자 이내로, 개인화가 핵심이에요. 왜 "이 사람"에게 연결 신청을 보내는지 이유가 분명히 보여야 답장률이 높아요. InMail 응답률은 10% 미만이지만 개인화된 노트는 훨씬 높아요.'
+    },
+    ctaBookH: '전자책으로 더 깊이 배우기',
+    ctaBookP: '리크루터가 먼저 연락하게 만드는 링크드인 전략 전부 공개. 해외 대기업 3곳 인턴 + 스카웃 10곳 이상을 이끌어낸 실전 노하우',
+    ctaBookBtn: '📖 전자책 구매하기 (크몽)',
+    ctaCallH: '1:1 코칭 예약하기',
+    ctaCallP: '저자와 직접 1:1로 내 링크드인 프로필을 함께 만들어드려요. 실시간으로 피드백 받고 완성까지',
+    ctaCallBtn: '🗓️ Calendly로 예약하기',
+    errorMsg: '오류가 발생했어요. 잠시 후 다시 시도해주세요.',
+  },
+  en: {
+    eyebrow: 'AI Profile Generator · Based on the Ebook',
+    heroH1: 'Turn your resume into a<br><em>LinkedIn profile</em> instantly',
+    heroP: 'Upload your resume and AI generates 5 sections —<br>Headline, About, Experience, Skills & Connection Note — in English',
+    uploadTitle: 'Upload your resume here',
+    uploadHint: 'PDF or DOCX · Drag & drop supported · Max 5MB',
+    removeBtn: '✕ Remove',
+    genLabel: 'Generate my profile',
+    loadingMsgs: ['Analyzing your resume...', 'AI is writing your profile...', 'Optimizing each section...', 'Almost done...'],
+    sectionNames: { headline: 'HEADLINE', about: 'ABOUT', experience: 'EXPERIENCE', skills: 'SKILLS', connection: 'CONNECTION NOTE' },
+    varA: 'Version A', varB: 'Version B',
+    tipLabel: '💡 Tip',
+    copyLabel: 'Copy',
+    copied: 'Copied!',
+    tips: {
+      headline: 'Even Bill Gates keeps his headline to one line. Less is more — the recruiter should instantly know who you are. This section also carries the most weight in LinkedIn\'s search algorithm.',
+      about: 'Your About section is a strategic landing page, not just a résumé in prose. Highlight your unique edge — what makes you rare in the market. You can write up to 2,600 characters.',
+      experience: 'Frame experience as impact, not just tasks. Always include numbers and outcomes. Recruiters scan profiles in about 7 seconds — make every bullet count.',
+      skills: 'The Skills section directly affects LinkedIn\'s search algorithm. Include keywords that HR teams at companies like Google and Microsoft actually search for.',
+      connection: 'Keep connection notes under 300 characters. Personalization is key — the recipient should immediately see why you\'re reaching out to them specifically. Personalized notes far outperform cold InMails (which have under 10% response rates).'
+    },
+    ctaBookH: 'Learn the full strategy',
+    ctaBookP: 'The exact LinkedIn playbook that led to 3 big-corp internships and 10+ recruiter outreaches — all from scratch, shared in full.',
+    ctaBookBtn: '📖 Get the ebook',
+    ctaCallH: 'Book a 1:1 coaching session',
+    ctaCallP: 'Work directly with the author to build and refine your LinkedIn profile together in real time — from upload to polished.',
+    ctaCallBtn: '🗓️ Book via Calendly',
+    errorMsg: 'Something went wrong. Please try again.',
+  }
+};
+
+let lang = 'ko';
+let selectedFile = null;
+
+function setLang(l) {
+  lang = l;
+  document.getElementById('btn-ko').classList.toggle('active', l === 'ko');
+  document.getElementById('btn-en').classList.toggle('active', l === 'en');
+  document.documentElement.lang = l;
+  const t = T[l];
+  document.getElementById('eyebrow').textContent = t.eyebrow;
+  document.getElementById('hero-h1').innerHTML = t.heroH1;
+  document.getElementById('hero-p').innerHTML = t.heroP;
+  document.getElementById('upload-title').textContent = t.uploadTitle;
+  document.getElementById('upload-hint').textContent = t.uploadHint;
+  document.getElementById('remove-btn').textContent = t.removeBtn;
+  document.getElementById('gen-label').textContent = t.genLabel;
+  document.getElementById('cta-book-h').textContent = t.ctaBookH;
+  document.getElementById('cta-book-p').textContent = t.ctaBookP;
+  document.getElementById('cta-book-btn').textContent = t.ctaBookBtn;
+  document.getElementById('cta-call-h').textContent = t.ctaCallH;
+  document.getElementById('cta-call-p').textContent = t.ctaCallP;
+  document.getElementById('cta-call-btn').textContent = t.ctaCallBtn;
+  document.getElementById('toast').textContent = t.copied;
+}
+
+function onDragOver(e) { e.preventDefault(); document.getElementById('upload-zone').classList.add('dragover'); }
+function onDragLeave() { document.getElementById('upload-zone').classList.remove('dragover'); }
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('dragover');
+  const f = e.dataTransfer.files[0];
+  if (f) applyFile(f);
+}
+
+function onFileSelect(e) {
+  const f = e.target.files[0];
+  if (f) applyFile(f);
+}
+
+function applyFile(f) {
+  if (f.size > 5 * 1024 * 1024) { alert(lang === 'ko' ? '5MB 이하 파일만 업로드 가능해요.' : 'File must be under 5MB.'); return; }
+  selectedFile = f;
+  document.getElementById('file-name-text').textContent = f.name;
+  document.getElementById('file-pill').style.display = 'flex';
+  document.getElementById('upload-zone').style.display = 'none';
+  document.getElementById('gen-btn').disabled = false;
+}
+
+function removeFile() {
+  selectedFile = null;
+  document.getElementById('file-pill').style.display = 'none';
+  document.getElementById('upload-zone').style.display = 'block';
+  document.getElementById('gen-btn').disabled = true;
+  document.getElementById('file-input').value = '';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('cta-wrap').style.display = 'none';
+}
+
 async function generate() {
-  const key = document.getElementById('apiKey').value;
-  const text = document.getElementById('resumeText').value;
-  const btn = document.getElementById('genBtn');
-  const status = document.getElementById('status');
-  const results = document.getElementById('results');
-  const errorBox = document.getElementById('errorBox');
+  if (!selectedFile) return;
+  const t = T[lang];
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('cta-wrap').style.display = 'none';
+  document.getElementById('gen-btn').disabled = true;
 
-  if(!key || !text) return alert("키와 내용을 모두 입력해주세요.");
-
-  btn.disabled = true;
-  status.style.display = 'block';
-  errorBox.style.display = 'none';
-  results.innerHTML = '';
-
-  // 하나의 프롬프트로 합쳐서 요청 횟수(Request Count)를 최소화함 (Quota 절약)
-  const prompt = `
-    Based on the following resume text, provide a LinkedIn profile optimization in JSON format.
-    Keep it professional and high-impact.
-    
-    Resume Text: ${text}
-    
-    Return ONLY JSON:
-    {
-      "headline": "SEO optimized headline",
-      "about": "First-person professional summary",
-      "experience": ["bullet point 1", "bullet point 2"],
-      "skills": ["skill1", "skill2"]
-    }
-  `;
+  let mi = 0;
+  const msgEl = document.getElementById('loading-msg');
+  msgEl.textContent = t.loadingMsgs[0];
+  const timer = setInterval(() => { mi = (mi + 1) % t.loadingMsgs.length; msgEl.textContent = t.loadingMsgs[mi]; }, 2500);
 
   try {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`, {
+    const isPdf = selectedFile.type === 'application/pdf';
+    const fileData = await new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = e => res(e.target.result);
+      r.onerror = () => rej(new Error('read error'));
+      isPdf ? r.readAsDataURL(selectedFile) : r.readAsText(selectedFile);
+    });
+
+    const prompt = `You are a LinkedIn profile expert specializing in helping Korean professionals get hired at global companies.
+
+Based on the resume, create an optimized English LinkedIn profile using these principles from the ebook "LinkedIn: Formula for Getting a Job Abroad" by Minkyu Song (German-based data engineer who got 3 internships + 10 recruiter outreaches via LinkedIn):
+
+PRINCIPLES:
+1. Headline (max 220 chars): Fact-based, keyword-rich, no fluff. Like Bill Gates: concise and direct. Position the person's unique edge.
+2. About: NOT a resume in prose — a "strategic landing page". Highlight rare value. Two styles: story-driven vs skills-focused.
+3. Experience: Impact-driven bullets with numbers/metrics. Not "did X" but "achieved Y by doing X, resulting in Z%".
+4. Skills: Keywords recruiters at Google, Microsoft, SAP etc. actually search for.
+5. Connection Note: Personalized template under 300 chars. High response rate comes from specificity.
+
+Return ONLY valid JSON (no markdown fences, no explanation):
+{
+  "headline": {
+    "variantA": "concise, keyword-rich, fact-based headline",
+    "variantB": "slightly more narrative/positioning-focused headline"
+  },
+  "about": {
+    "variantA": "story-driven 3-4 sentence version that shows personality and edge",
+    "variantB": "skills-and-results focused version, more structured"
+  },
+  "experience": [
+    "• Achieved [result] by [action], improving [metric] by X%",
+    "• Built/Led/Designed [thing] that [impact with number]",
+    "• [3rd bullet with number]",
+    "• [4th bullet with number]"
+  ],
+  "skills": ["Skill1","Skill2","Skill3","Skill4","Skill5","Skill6","Skill7","Skill8","Skill9","Skill10"],
+  "connectionNote": "Hi [Name], I came across your profile while researching [company/field]. Your work in [specific area] really stood out — I'd love to connect and learn from your experience. [Your name]"
+}`;
+
+    let messages;
+    if (isPdf) {
+      messages = [{ role: 'user', content: [
+        { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: fileData.split(',')[1] } },
+        { type: 'text', text: prompt }
+      ]}];
+    } else {
+      messages = [{ role: 'user', content: `RESUME:\n${fileData}\n\n${prompt}` }];
+    }
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1500, messages })
     });
-    
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error?.message || 'API 호출 실패');
-    
-    const cleanJson = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
-    const final = JSON.parse(cleanJson);
 
-    results.innerHTML = `
-      <div class="card"><span class="card-title">HEADLINE</span><div class="content">${final.headline}</div></div>
-      <div class="card"><span class="card-title">ABOUT</span><div class="content">${final.about}</div></div>
-      <div class="card"><span class="card-title">EXPERIENCE BULLETS</span><div class="content">${final.experience.join('\n')}</div></div>
-      <div class="card"><span class="card-title">SKILLS</span><div class="content">${final.skills.join(', ')}</div></div>
-    `;
-  } catch (err) {
-    errorBox.textContent = err.message;
-    errorBox.style.display = 'block';
-  } finally {
-    btn.disabled = false;
-    status.style.display = 'none';
+    const data = await res.json();
+    const raw = (data.content || []).map(c => c.text || '').join('');
+    const clean = raw.replace(/```json\s*/g,'').replace(/```\s*/g,'').trim();
+
+    clearInterval(timer);
+    document.getElementById('loading').style.display = 'none';
+
+    let profile;
+    try { profile = JSON.parse(clean); } catch { profile = null; }
+    profile ? renderResults(profile) : renderError();
+
+  } catch(err) {
+    clearInterval(timer);
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('gen-btn').disabled = false;
+    renderError();
   }
+}
+
+function renderResults(profile) {
+  const t = T[lang];
+  const container = document.getElementById('results');
+  container.innerHTML = '';
+
+  const sections = [
+    {
+      key: 'headline',
+      html() {
+        return `<div class="vtabs">
+          <button class="vtab active" onclick="swTab(this,'hA','hB')">${t.varA}</button>
+          <button class="vtab" onclick="swTab(this,'hB','hA')">${t.varB}</button>
+        </div>
+        <div class="section-text" id="hA"><p>${esc(profile.headline?.variantA||'')}</p></div>
+        <div class="section-text" id="hB" style="display:none"><p>${esc(profile.headline?.variantB||'')}</p></div>`;
+      },
+      copy: () => document.getElementById('hA').style.display!=='none' ? profile.headline?.variantA||'' : profile.headline?.variantB||''
+    },
+    {
+      key: 'about',
+      html() {
+        return `<div class="vtabs">
+          <button class="vtab active" onclick="swTab(this,'aA','aB')">${t.varA}</button>
+          <button class="vtab" onclick="swTab(this,'aB','aA')">${t.varB}</button>
+        </div>
+        <div class="section-text" id="aA"><p>${esc(profile.about?.variantA||'').replace(/\n/g,'<br>')}</p></div>
+        <div class="section-text" id="aB" style="display:none"><p>${esc(profile.about?.variantB||'').replace(/\n/g,'<br>')}</p></div>`;
+      },
+      copy: () => document.getElementById('aA').style.display!=='none' ? profile.about?.variantA||'' : profile.about?.variantB||''
+    },
+    {
+      key: 'experience',
+      html() {
+        const items = (profile.experience||[]).map(b=>`<li>${esc(b.replace(/^[•\-]\s*/,''))}</li>`).join('');
+        return `<div class="section-text"><ul>${items}</ul></div>`;
+      },
+      copy: () => (profile.experience||[]).join('\n')
+    },
+    {
+      key: 'skills',
+      html() {
+        const tags = (profile.skills||[]).map(s=>`<span class="skill-tag">${esc(s)}</span>`).join('');
+        return `<div class="skills-wrap">${tags}</div>`;
+      },
+      copy: () => (profile.skills||[]).join(', ')
+    },
+    {
+      key: 'connection',
+      html() {
+        return `<div class="connection-box">${esc(profile.connectionNote||'')}</div>`;
+      },
+      copy: () => profile.connectionNote||''
+    }
+  ];
+
+  sections.forEach((sec, i) => {
+    const div = document.createElement('div');
+    div.className = 'result-section';
+    div.style.animationDelay = `${i * 0.06}s`;
+    div.innerHTML = `
+      <div class="section-head">
+        <span class="section-label">${t.sectionNames[sec.key]}</span>
+        <button class="tip-btn" onclick="toggleTip('tip-${sec.key}')">${t.tipLabel}</button>
+        <button class="copy-btn" id="copy-${sec.key}" onclick="copySection('${sec.key}')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          ${t.copyLabel}
+        </button>
+      </div>
+      <div class="tip-box" id="tip-${sec.key}">${t.tips[sec.key]}</div>
+      <div class="section-body">${sec.html()}</div>
+    `;
+    window['_copy_' + sec.key] = sec.copy;
+    container.appendChild(div);
+  });
+
+  container.style.display = 'flex';
+  document.getElementById('cta-wrap').style.display = 'grid';
+  document.getElementById('gen-btn').disabled = false;
+  container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderError() {
+  const container = document.getElementById('results');
+  container.style.display = 'flex';
+  container.innerHTML = `<div style="padding:2rem;text-align:center;color:var(--muted);font-size:14px;">${T[lang].errorMsg}</div>`;
+  document.getElementById('gen-btn').disabled = false;
+}
+
+function swTab(btn, showId, hideId) {
+  document.getElementById(showId).style.display = 'block';
+  document.getElementById(hideId).style.display = 'none';
+  btn.classList.add('active');
+  btn.parentElement.querySelectorAll('.vtab').forEach(b => { if (b !== btn) b.classList.remove('active'); });
+}
+
+function toggleTip(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+
+function copySection(key) {
+  const fn = window['_copy_' + key];
+  if (!fn) return;
+  navigator.clipboard.writeText(fn()).then(() => {
+    const btn = document.getElementById('copy-' + key);
+    if (btn) { btn.classList.add('copied'); btn.textContent = '✓ ' + T[lang].copied.replace('!',''); setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> ${T[lang].copyLabel}`; }, 2000); }
+    showToast(T[lang].copied);
+  });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
 </body>
