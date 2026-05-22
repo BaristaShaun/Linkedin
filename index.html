@@ -3,287 +3,107 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Global LinkedIn Agent - Profile Generator</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<title>LinkedIn Agent - Text Mode</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0a0a0f;
-    --surface: #111118;
-    --surface2: #1a1a24;
-    --border: #2a2a3a;
-    --accent: #4f8ef7;
-    --accent2: #a78bfa;
-    --gold: #f0c060;
-    --text: #e8e8f0;
-    --muted: #6b6b88;
-    --success: #34d399;
-    --error: #f87171;
+  :root { --bg: #0a0a0f; --surface: #111118; --border: #2a2a3a; --accent: #4f8ef7; --text: #e8e8f0; --muted: #6b6b88; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; padding: 20px; }
+  .wrap { max-width: 800px; margin: 0 auto; }
+  h1 { text-align: center; margin-bottom: 30px; color: var(--accent); }
+  
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+  input, textarea { 
+    width: 100%; background: #000; border: 1px solid var(--border); border-radius: 8px; 
+    padding: 12px; color: #fff; font-family: inherit; margin-bottom: 10px;
   }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
+  textarea { height: 200px; resize: vertical; }
+  
+  button { 
+    width: 100%; padding: 15px; border-radius: 8px; border: none; 
+    background: var(--accent); color: white; font-weight: bold; cursor: pointer;
   }
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(79,142,247,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(79,142,247,0.04) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
-  .wrap { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 40px 24px 80px; }
-  .header { text-align: center; margin-bottom: 48px; animation: fadeDown 0.7s ease; }
-  .header .tag {
-    display: inline-block;
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.15em;
-    color: var(--accent);
-    border: 1px solid rgba(79,142,247,0.3);
-    padding: 4px 14px;
-    border-radius: 20px;
-    margin-bottom: 16px;
-    background: rgba(79,142,247,0.06);
-  }
-  .header h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(32px, 6vw, 52px);
-    line-height: 1.1;
-    background: linear-gradient(135deg, #e8e8f0 0%, #a78bfa 50%, #4f8ef7 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 12px;
-  }
-  #apiPanel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; margin-bottom: 28px; }
-  .api-row { display: flex; gap: 10px; }
-  .api-row input {
-    flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
-    padding: 12px 16px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 13px; outline: none;
-  }
-  .btn-save { background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 12px 22px; cursor: pointer; }
-  #uploadZone {
-    border: 2px dashed var(--border); border-radius: 20px; padding: 56px 32px;
-    text-align: center; cursor: pointer; background: var(--surface); margin-bottom: 28px;
-  }
-  #generateBtn {
-    width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent2));
-    color: #fff; border: none; border-radius: 14px; padding: 18px;
-    font-family: 'Playfair Display', serif; font-size: 18px; cursor: pointer; margin-bottom: 40px;
-  }
-  #generateBtn:disabled { opacity: 0.4; }
-  .progress-steps { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
-  .step { display: flex; align-items: center; gap: 14px; padding: 14px 18px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; font-size: 14px; color: var(--muted); }
-  .step.active { border-color: var(--accent); color: var(--text); }
-  .step.done { border-color: var(--success); color: var(--success); }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 20px; overflow: hidden; }
-  .card-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 22px; background: var(--surface2); border-bottom: 1px solid var(--border); }
-  .card-title { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--muted); }
-  .card-body { padding: 20px 22px; }
-  .card-content { font-size: 14px; line-height: 1.75; white-space: pre-wrap; outline: none; }
-  .btn-copy { background: rgba(79,142,247,0.1); border: 1px solid rgba(79,142,247,0.25); color: var(--accent); border-radius: 8px; padding: 6px 14px; cursor: pointer; }
-  .skill-tag { display: inline-block; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 5px 12px; margin: 4px; font-size: 13px; }
-  .error-box { background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.3); color: var(--error); padding: 16px; border-radius: 12px; margin-bottom: 20px; display: none; }
+  button:disabled { background: #333; cursor: not-allowed; }
+  
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-top: 15px; padding: 15px; }
+  .card-title { font-family: 'DM Mono', monospace; color: var(--accent); font-size: 12px; margin-bottom: 10px; display: block; }
+  .content { white-space: pre-wrap; font-size: 14px; line-height: 1.6; }
+  .error { color: #f87171; background: rgba(248,113,113,0.1); padding: 10px; border-radius: 5px; margin-bottom: 10px; display: none; }
 </style>
 </head>
 <body>
+
 <div class="wrap">
-  <div class="header">
-    <div class="tag">GLOBAL CAREER · LINKEDIN OPTIMIZER</div>
-    <h1>Global LinkedIn<br>Profile Builder</h1>
-    <p>해외 취업 전문가의 인사이트를 반영하여<br>리크루터의 검색 알고리즘에 최적화된 프로필을 생성합니다.</p>
+  <h1>LinkedIn Builder (Text Only)</h1>
+
+  <div class="panel">
+    <input type="password" id="apiKey" placeholder="Gemini API Key 입력">
+    <textarea id="resumeText" placeholder="이력서 내용을 여기에 붙여넣으세요..."></textarea>
+    <div id="errorBox" class="error"></div>
+    <button id="genBtn" onclick="generate()">✨ 프로필 생성 (텍스트 모드)</button>
   </div>
 
-  <div id="apiPanel">
-    <div class="api-row">
-      <input type="password" id="apiKeyInput" placeholder="Gemini API Key를 입력하세요 (AIza...)" autocomplete="off">
-      <button class="btn-save" onclick="saveKey()">저장</button>
-    </div>
-  </div>
-
-  <div id="uploadZone" onclick="document.getElementById('fileInput').click()">
-    <span style="font-size:40px">📄</span>
-    <h3>이력서(Resume) 업로드</h3>
-    <p>PDF, DOCX, TXT 지원</p>
-    <div id="fileBadge" style="display:none; margin-top:15px; color:var(--accent)">
-      📎 <span id="fileName"></span>
-    </div>
-  </div>
-  <input type="file" id="fileInput" style="display:none" onchange="handleFile(event)">
-
-  <div id="errorBox" class="error-box"></div>
-
-  <button id="generateBtn" onclick="generate()" disabled>✨ 최적화 프로필 생성 시작</button>
-
-  <div id="progress" style="display:none">
-    <div class="progress-steps">
-      <div class="step" id="step1">이력서 핵심 역량 분석 중...</div>
-      <div class="step" id="step2">SEO 최적화 헤드라인 및 About 작성 중...</div>
-      <div class="step" id="step3">수치 기반 경력 섹션(Experience) 재구성 중...</div>
-      <div class="step" id="step4">글로벌 타겟 스킬셋 정리 중...</div>
-    </div>
-  </div>
-
-  <div id="results" style="display:none">
-    <div style="display:flex; justify-content:space-between; margin-bottom:20px; align-items:center">
-      <h2>📋 LinkedIn Profile Draft</h2>
-      <button class="btn-save" onclick="downloadPDF()">PDF 저장</button>
-    </div>
-    <div id="cardsGrid"></div>
-  </div>
+  <div id="status" style="text-align: center; color: var(--muted); display: none;">AI가 분석 중입니다... 잠시만 기다려주세요.</div>
+  <div id="results"></div>
 </div>
 
 <script>
-let apiKey = localStorage.getItem('gemini_key') || '';
-let fileData = null;
-
-window.onload = () => {
-  if (apiKey) document.getElementById('apiKeyInput').value = apiKey;
-  checkReady();
-};
-
-function saveKey() {
-  apiKey = document.getElementById('apiKeyInput').value.trim();
-  localStorage.setItem('gemini_key', apiKey);
-  alert('API Key가 저장되었습니다.');
-  checkReady();
-}
-
-function handleFile(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    fileData = { base64: e.target.result.split(',')[1], mimeType: file.type || 'application/pdf', name: file.name };
-    document.getElementById('fileName').textContent = file.name;
-    document.getElementById('fileBadge').style.display = 'inline-flex';
-    checkReady();
-  };
-  reader.readAsDataURL(file);
-}
-
-function checkReady() {
-  document.getElementById('generateBtn').disabled = !(apiKey && fileData);
-}
-
-function showError(msg) {
-  const el = document.getElementById('errorBox');
-  el.textContent = msg;
-  el.style.display = msg ? 'block' : 'none';
-}
-
-async function callGemini(prompt, includeFile = false) {
-  const parts = includeFile ? [{ inline_data: { mime_type: fileData.mimeType, data: fileData.base64 } }, { text: prompt }] : [{ text: prompt }];
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ contents: [{ parts }] })
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error?.message || 'API 호출 실패');
-  return data.candidates[0].content.parts[0].text;
-}
-
-function setStep(num, state) {
-  for (let i = 1; i <= 4; i++) {
-    const el = document.getElementById('step' + i);
-    el.className = 'step' + (i === num ? ' ' + state : i < num ? ' done' : '');
-  }
-}
-
 async function generate() {
-  showError('');
-  document.getElementById('progress').style.display = 'block';
-  document.getElementById('results').style.display = 'none';
+  const key = document.getElementById('apiKey').value;
+  const text = document.getElementById('resumeText').value;
+  const btn = document.getElementById('genBtn');
+  const status = document.getElementById('status');
+  const results = document.getElementById('results');
+  const errorBox = document.getElementById('errorBox');
+
+  if(!key || !text) return alert("키와 내용을 모두 입력해주세요.");
+
+  btn.disabled = true;
+  status.style.display = 'block';
+  errorBox.style.display = 'none';
+  results.innerHTML = '';
+
+  // 하나의 프롬프트로 합쳐서 요청 횟수(Request Count)를 최소화함 (Quota 절약)
+  const prompt = `
+    Based on the following resume text, provide a LinkedIn profile optimization in JSON format.
+    Keep it professional and high-impact.
+    
+    Resume Text: ${text}
+    
+    Return ONLY JSON:
+    {
+      "headline": "SEO optimized headline",
+      "about": "First-person professional summary",
+      "experience": ["bullet point 1", "bullet point 2"],
+      "skills": ["skill1", "skill2"]
+    }
+  `;
 
   try {
-    // 1. Parsing
-    setStep(1, 'active');
-    const parsePrompt = "Extract resume data into JSON: name, currentTitle, experiences(company, title, period, description), skills, education.";
-    const rawParse = await callGemini(parsePrompt, true);
-    const parsed = JSON.parse(rawParse.replace(/```json|```/g, '').trim());
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    });
+    
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || 'API 호출 실패');
+    
+    const cleanJson = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
+    const final = JSON.parse(cleanJson);
 
-    // 2. Headline & About (Insight: SEO + Hook)
-    setStep(2, 'active');
-    const haPrompt = `As a LinkedIn Expert for Global Careers:
-    1. Headline: Create a high-SEO headline (max 120 chars). Format: "Role | Key Skills | Quantified Achievement".
-    2. About: Write a first-person summary. Start with a 2-line "Hook" showcasing a major achievement. Use "Problem-Action-Result" structure. High-impact English only.
-    Data: ${JSON.stringify(parsed)}
-    Return JSON: {"headline":"", "about":""}`;
-    const haRaw = await callGemini(haPrompt);
-    const haData = JSON.parse(haRaw.replace(/```json|```/g, '').trim());
-
-    // 3. Experience (Insight: Power Verbs & Numbers)
-    setStep(3, 'active');
-    const expPrompt = `Rewrite these experiences into LinkedIn bullet points. 
-    - Use Power Verbs (Spearheaded, Orchestrated, Optimized, Scaled).
-    - Quantify results (%, $, Time). 
-    - Focus on IMPACT, not duties.
-    Data: ${JSON.stringify(parsed.experiences)}
-    Return JSON array: [{"company":"", "title":"", "bullets":[]}]`;
-    const expRaw = await callGemini(expPrompt);
-    const expData = JSON.parse(expRaw.replace(/```json|```/g, '').trim());
-
-    // 4. Skills (Insight: Recruiter Filter)
-    setStep(4, 'active');
-    const skillsPrompt = `Suggest 15 optimized LinkedIn skills (Keywords) for this role to pass recruiter filters. Return JSON array of strings.`;
-    const skillsRaw = await callGemini(skillsPrompt);
-    const skills = JSON.parse(skillsRaw.replace(/```json|```/g, '').trim());
-
-    renderResults({ haData, expData, skills });
+    results.innerHTML = `
+      <div class="card"><span class="card-title">HEADLINE</span><div class="content">${final.headline}</div></div>
+      <div class="card"><span class="card-title">ABOUT</span><div class="content">${final.about}</div></div>
+      <div class="card"><span class="card-title">EXPERIENCE BULLETS</span><div class="content">${final.experience.join('\n')}</div></div>
+      <div class="card"><span class="card-title">SKILLS</span><div class="content">${final.skills.join(', ')}</div></div>
+    `;
   } catch (err) {
-    showError(err.message);
+    errorBox.textContent = err.message;
+    errorBox.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    status.style.display = 'none';
   }
-}
-
-function renderResults(data) {
-  const grid = document.getElementById('cardsGrid');
-  grid.innerHTML = '';
-  
-  const sections = [
-    { title: 'STRATEGIC HEADLINE (SEO)', content: data.haData.headline, id: 'h' },
-    { title: 'ABOUT (THE HOOK)', content: data.haData.about, id: 'a' },
-    ...data.expData.map((e, i) => ({ title: `EXPERIENCE: ${e.company}`, content: `${e.title}\n\n${e.bullets.map(b => '• ' + b).join('\n')}`, id: 'e'+i })),
-    { title: 'OPTIMIZED SKILLS', content: data.skills, type: 'skills', id: 's' }
-  ];
-
-  sections.forEach(s => {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `
-      <div class="card-header">
-        <span class="card-title">${s.title}</span>
-        <button class="btn-copy" onclick="copyText('${s.id}')">Copy</button>
-      </div>
-      <div class="card-body">
-        ${s.type === 'skills' ? `<div id="text_${s.id}">${s.content.map(sk => `<span class="skill-tag">${sk}</span>`).join('')}</div>` : 
-        `<div class="card-content" id="text_${s.id}" contenteditable="true">${s.content}</div>`}
-      </div>`;
-    grid.appendChild(card);
-  });
-
-  document.getElementById('progress').style.display = 'none';
-  document.getElementById('results').style.display = 'block';
-}
-
-function copyText(id) {
-  const txt = document.getElementById('text_'+id).innerText;
-  navigator.clipboard.writeText(txt);
-  alert('복사되었습니다.');
-}
-
-function downloadPDF() {
-  const element = document.getElementById('cardsGrid');
-  html2pdf().from(element).set({ margin: 10, filename: 'linkedin-optimized.pdf', html2canvas: { scale: 2, backgroundColor: '#0a0a0f' } }).save();
 }
 </script>
 </body>
